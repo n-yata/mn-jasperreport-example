@@ -1,6 +1,7 @@
 package example.micronaut;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -13,17 +14,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import example.micronaut.domain.FuncRequest;
 import example.micronaut.domain.FuncResponse;
+import example.micronaut.domain.JasperModel;
 import io.micronaut.core.io.ResourceResolver;
 import io.micronaut.core.io.scan.ClassPathResourceLoader;
 import io.micronaut.function.aws.MicronautRequestHandler;
 import jakarta.inject.Inject;
-import net.sf.jasperreports.engine.JREmptyDataSource;
+import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 public class FunctionRequestHandler
         extends MicronautRequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -69,7 +72,16 @@ public class FunctionRequestHandler
 
         Map<String, Object> parameterMap = new HashMap<>();
         JasperReport jasperReport = JasperCompileManager.compileReport(jasperFilePath);
-        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameterMap, new JREmptyDataSource());
+
+        JasperModel model = new JasperModel();
+        model.setCustomTitle("custom title!!");
+        model.setCustomBody("example body!!");
+        JasperModel model2 = new JasperModel();
+        model2.setCustomTitle("custom title2");
+        model2.setCustomBody("example body2");
+        JRDataSource dataSource = new JRBeanCollectionDataSource(Arrays.asList(model, model2));
+
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameterMap, dataSource);
         JasperExportManager.exportReportToPdfFile(jasperPrint, "jasper.pdf");
 
         FuncResponse response = new FuncResponse();
